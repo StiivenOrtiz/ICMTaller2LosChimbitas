@@ -16,6 +16,7 @@ import com.loschimbitas.icm_taller2_loschimbitas.databinding.ActivityContactsBin
 class Contacts : AppCompatActivity() {
 
     private lateinit var binding: ActivityContactsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityContactsBinding.inflate(layoutInflater)
@@ -43,21 +44,30 @@ class Contacts : AppCompatActivity() {
                     this,
                     Manifest.permission.READ_CONTACTS
                 )
-            ) {
-                // The user has previously denied this permission but not permanently.
-                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-            } else {
-                // The user has never been asked for the permission.
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_CONTACTS),
-                    1
-                )
-            }
-        } else {
-            // Permission granted
+            )
+            // The user has previously denied the permission but not permanently.
+                requestContactsPermission()
+            else
+            // The user has never been asked for the permission.
+                requestContactsPermission()
+        } else
+        // Permission granted
             initContacts()
-        }
+
+    }
+
+    /**
+     * @name: requestContactsPermission
+     * @description: Request the permission to read contacts
+     * @return: void
+     * @exception: none
+     */
+    private fun requestContactsPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.READ_CONTACTS),
+            1
+        )
     }
 
     /**
@@ -71,16 +81,14 @@ class Contacts : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         // Check if the permission was granted or not
-        if (requestCode == 1) {
-            // Permission granted
+        if (requestCode == 1)
+        // Permission granted
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Initialize the contacts
                 initContacts()
-            } else {
-                // Permission denied
-                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-            }
-        }
+            } else
+            // Permission denied permanently
+                Toast.makeText(this, "Permission denied permanently", Toast.LENGTH_SHORT).show()
     }
 
     /**
