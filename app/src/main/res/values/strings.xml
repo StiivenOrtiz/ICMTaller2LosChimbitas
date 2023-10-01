@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ICM-Taller2-LosChimbitas</string>
+    <string name="gallery">Gallery</string>
+    <string name="camera">Camera</string>
 </resources>

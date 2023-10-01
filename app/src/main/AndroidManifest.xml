@@ -2,6 +2,31 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--  Use read contacts to print on listview  -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!--  Use camera to take photo  -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" />
+
+    <!--  Use write external storage to save photo  -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"
+        tools:ignore="ScopedStorage" />
+
+    <!--  Use read external storage to read photo  -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!--  Localitation to use GPS/OSM  -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!--  Internet to use OSM  -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,6 +37,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ICMTaller2LosChimbitas"
         tools:targetApi="31">
+        <activity
+            android:name=".Camera"
+            android:exported="false" />
+        <activity
+            android:name=".Contacts"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
