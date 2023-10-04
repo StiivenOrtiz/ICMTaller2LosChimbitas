@@ -2,36 +2,107 @@ package com.loschimbitas.icm_taller2_loschimbitas
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.util.Log
+import android.widget.Button
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.loschimbitas.icm_taller2_loschimbitas.databinding.ActivityCameraBinding
+import java.io.File
 
 class Camera : AppCompatActivity() {
 
     private lateinit var binding: ActivityCameraBinding
+
+//  Creación del contrato para obtener el objeto desde la galería y ponerlo en la image view
+    private val selectSinglePhotoContract = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
+        // Handle the returned Uri
+        uri?.let {
+            val imageView = binding.imageView
+            imageView.setImageURI(it)
+        }
+    }
+//  Fin de creacion del contrato
+
+    private var tempImageUri: Uri? = null
+
+//    Creación del contrato para inicializar la cámara
+    private val camaraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()){
+       success ->
+        if (success) {
+            val imageView = binding.imageView
+            imageView.setImageURI(null) //rough handling of image changes. Real code need to handle different API levels.
+            imageView.setImageURI(tempImageUri)
+        }
+        else
+            Toast.makeText(this, "Error taking picture", Toast.LENGTH_SHORT).show()
+    }
+//  Fin de creación del contrato para inicializar la cámara
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Crear URI temporal para la imagen (para que no salga pixelada)
+
         checkPermissions()
 
         binding.cameraButton.setOnClickListener {
             if (checkPermissions()) {
-                Toast.makeText(this, "Camera", Toast.LENGTH_SHORT).show()
+                tempImageUri = initTempUri()
+                // Lanzo el contrato
+                camaraLauncher.launch(tempImageUri)
             }
         }
 
         binding.galleryButton.setOnClickListener {
             if (checkStoragePermissions()) {
-                Toast.makeText(this, "Gallery", Toast.LENGTH_SHORT).show()
+                // Lanzo el contrato
+                selectSinglePhotoContract.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+
             }
         }
     }
+
+//  Funciones necesarias para la cámara:
+//  Secuencialmente: initTempUri
+
+    // Método: initTempUri que sirve para crear el directorio temporal que permite que la
+    // imagen no salga pixelada (porque mapea la imagen a partir de el archivo completo como tal
+    // y no de la vista previa)
+    private fun initTempUri(): Uri {
+        //gets the temp_images dir
+        val tempImagesDir = File(
+            applicationContext.filesDir, //this function gets the external cache dir
+            getString(R.string.temp_images_dir)) //gets the directory for the temporary images dir
+
+        tempImagesDir.mkdir() //Create the temp_images dir
+
+        //Creates the temp_image.jpg file
+        val tempImage = File(
+            tempImagesDir, //prefix the new abstract path with the temporary images dir path
+            getString(R.string.temp_image)) //gets the abstract temp_image file name
+
+        //Returns the Uri object to be used with ActivityResultLauncher
+        return FileProvider.getUriForFile(
+            applicationContext,
+            getString(R.string.authorities),
+            tempImage)
+    }
+    // Fin de la función initTempUri
+
+//  Fin de funciones necesarias para la cámara
 
     /**
      * @name: checkPermissions
