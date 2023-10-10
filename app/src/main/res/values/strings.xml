@@ -3,9 +3,10 @@
     <string name="gallery">Gallery</string>
     <string name="camera">Camera</string>
 
-<!--    Parte de la cámara -->
+    <!--    Parte de la cámara -->
 
     <string name="temp_images_dir">temp_images</string>
     <string name="temp_image">temp_image.jpg</string>
     <string name="authorities">com.loschimbitas.icm_taller2_loschimbitas.fileprovider</string>
+    <string name="title_activity_maps">MapsActivity</string>
 </resources>
