@@ -140,13 +140,6 @@ class Rutas : AppCompatActivity() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return
         }
         locationManager.requestLocationUpdates(
@@ -180,61 +173,6 @@ class Rutas : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         binding.osmMap.onPause()
-    }
-
-    // Método para mostrar la ubicación actual en el mapa
-    private fun showCurrentLocation() {
-        // Utiliza LocationManager para obtener la ubicación actual
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val locationListener = object : LocationListener {
-            override fun onLocationChanged(location: Location) {
-                // Se actualiza la posición del marcador a la ubicación actual
-                updateMarkerPosition(GeoPoint(location.latitude, location.longitude))
-            }
-
-            override fun onProviderDisabled(provider: String) {}
-
-            override fun onProviderEnabled(provider: String) {}
-
-            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-        }
-
-        // Solicita permisos de ubicación si no están concedidos
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            // Registra el LocationListener para obtener actualizaciones de ubicación
-            locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                0,
-                0.toFloat(),
-                locationListener
-            )
-
-            // Activa la capa de ubicación en el mapa
-            val myLocationNewOverlay =
-                MyLocationNewOverlay(GpsMyLocationProvider(this), binding.osmMap)
-            myLocationNewOverlay.enableMyLocation()
-            binding.osmMap.overlays.add(myLocationNewOverlay)
-        } else {
-            // Si los permisos no están concedidos, solicita permisos
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-                locationPermissionCode
-            )
-        }
-    }
-
-
-
-    // Método para actualizar la posición del marcador
-    private fun updateMarkerPosition(geoPoint: GeoPoint) {
-        longPressedMarker?.let { binding.osmMap.overlays.remove(it) }
-        longPressedMarker = createMarker(geoPoint, "Mi ubicación", null, org.osmdroid.library.R.drawable.ic_menu_mylocation)
-        longPressedMarker?.let { binding.osmMap.overlays.add(it) }
     }
 
 
