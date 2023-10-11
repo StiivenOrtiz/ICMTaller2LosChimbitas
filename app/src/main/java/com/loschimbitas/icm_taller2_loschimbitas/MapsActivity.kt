@@ -15,6 +15,9 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -92,8 +95,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         inicializarVariables()
+        buscarCiudadesPorNombre()
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+
+    }
+
+    private fun buscarCiudadesPorNombre() {
 
         binding.texto.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.ACTION_UP && event.action == KeyEvent.ACTION_DOWN) {
@@ -134,14 +146,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             false
         }
-
-
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-
     }
 
     private fun inicializarVariables() {
@@ -158,9 +162,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 if (::mMap.isInitialized) {
                     if (event.values[0] < 5000) {
 //                        Log.i("MAPS", "DARK MAP " + event.values[0])
+                        AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES)
                         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this@MapsActivity, R.raw.style_json_night))
                     } else {
 //                        Log.i("MAPS", "LIGHT MAP " + event.values[0])
+                        AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO)
                         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this@MapsActivity, R.raw.style_json_day))
                     }
                 }

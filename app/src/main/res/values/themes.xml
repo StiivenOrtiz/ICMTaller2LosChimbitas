@@ -3,6 +3,12 @@
     <style name="Base.Theme.ICMTaller2LosChimbitas" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+    </style>
+
+    <style name="editTextStyle" >
+        <item name="android:background">@drawable/roundcorner</item>
+        <item name="android:textColorHint">@color/black</item>
     </style>
 
     <style name="Theme.ICMTaller2LosChimbitas" parent="Base.Theme.ICMTaller2LosChimbitas" />
