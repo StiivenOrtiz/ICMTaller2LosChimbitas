@@ -36,8 +36,8 @@ import org.osmdroid.bonuspack.routing.Road
 class Rutas : AppCompatActivity() {
 
     private lateinit var  binding: ActivityRutasBinding
-    private var latitude = 4.6341
-    private var longitude = -74.06554
+    private var latitude = 0.0
+    private var longitude = 0.0
     private val startPoint = GeoPoint(latitude,longitude)
     private var longPressedMarker: Marker?= null
     private lateinit var roadManager: RoadManager
@@ -246,7 +246,17 @@ class Rutas : AppCompatActivity() {
     private inner class GetRouteTask : AsyncTask<GeoPoint, Void, Road>() {
         override fun doInBackground(vararg params: GeoPoint): Road? {
             val routePoints = ArrayList<GeoPoint>()
-            routePoints.add(startPoint)
+
+            // Obtener la ubicación actual del usuario
+            val currentLocation = getCurrentLocation()
+            if (currentLocation != null) {
+                routePoints.add(GeoPoint(currentLocation.latitude, currentLocation.longitude))
+            } else {
+                showToast("No se pudo obtener la ubicación actual")
+                return null
+            }
+
+            // Agregar el destino a los puntos de la ruta
             routePoints.add(params[0]) // Destino
 
             return roadManager.getRoad(routePoints)
@@ -262,6 +272,27 @@ class Rutas : AppCompatActivity() {
             }
         }
     }
+
+    private fun getCurrentLocation(): Location? {
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+        return try {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return null
+            }
+            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
 
     private fun drawRoute(start: GeoPoint, finish: GeoPoint) {
         GetRouteTask().execute(finish)
