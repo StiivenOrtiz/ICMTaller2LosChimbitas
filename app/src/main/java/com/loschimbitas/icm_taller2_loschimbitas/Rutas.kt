@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.PackageManager
-import android.content.res.*
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -26,7 +25,6 @@ import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.TilesOverlay
-import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
@@ -42,7 +40,6 @@ class Rutas : AppCompatActivity() {
     private var longPressedMarker: Marker?= null
     private lateinit var roadManager: RoadManager
     private var roadOverlay:Polyline?= null
-    private lateinit var locationManager:LocationManager
     private var locationPermissionCode = 1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -149,11 +146,8 @@ class Rutas : AppCompatActivity() {
             locationListener
         )
 
-        // Activa la capa de ubicación en el mapa
-        val myLocationNewOverlay =
-            MyLocationNewOverlay(GpsMyLocationProvider(this), binding.osmMap)
-        myLocationNewOverlay.enableMyLocation()
-        binding.osmMap.overlays.add(myLocationNewOverlay)
+        // Agrega un marcador personalizado en la ubicación actual
+        showMarker(GeoPoint(latitude, longitude))
     }
 
     private fun showMarker(geoPoint: GeoPoint) {
@@ -165,6 +159,10 @@ class Rutas : AppCompatActivity() {
         marker.title = "Mi ubicación"
         marker.position = geoPoint
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+
+        // Aquí puedes personalizar el icono del marcador según tus necesidades
+        // marker.icon = resources.getDrawable(R.drawable.mi_icono_personalizado)
+
         binding.osmMap.overlays.add(marker)
     }
 
