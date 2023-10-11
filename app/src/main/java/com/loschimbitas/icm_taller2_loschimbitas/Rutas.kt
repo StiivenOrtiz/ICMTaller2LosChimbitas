@@ -36,8 +36,8 @@ import org.osmdroid.bonuspack.routing.Road
 class Rutas : AppCompatActivity() {
 
     private lateinit var  binding: ActivityRutasBinding
-    private val latitude = 4.62
-    private val longitude = -74.07
+    private var latitude = 4.6341
+    private var longitude = -74.06554
     private val startPoint = GeoPoint(latitude,longitude)
     private var longPressedMarker: Marker?= null
     private lateinit var roadManager: RoadManager
@@ -64,23 +64,6 @@ class Rutas : AppCompatActivity() {
         roadManager = OSRMRoadManager(this,"ANDROID")
 
 
-        buttonNavigate.setOnClickListener {
-            val locationName = editTextLocation.text.toString()
-            if (locationName.isNotEmpty()) {
-                val destinationPoint = buscarCiudadPorNombre(locationName)
-                if (destinationPoint != null) {
-                    val toastMessage = "En camino a $locationName"
-                    showToast(toastMessage)
-
-                    // Dibujar la ruta
-                    drawRoute(startPoint, destinationPoint)
-                } else {
-                    showToast("Ubicación no encontrada")
-                }
-            } else {
-                showToast("Ingrese una ubicación válida")
-            }
-        }
 
         // Verificar permisos de ubicación
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -96,6 +79,26 @@ class Rutas : AppCompatActivity() {
                 locationPermissionCode
             )
         }
+
+
+        buttonNavigate.setOnClickListener {
+            val locationName = editTextLocation.text.toString()
+            if (locationName.isNotEmpty()) {
+                val destinationPoint = buscarCiudadPorNombre(locationName)
+                if (destinationPoint != null) {
+                    val toastMessage = "En camino a $locationName"
+                    showToast(toastMessage)
+
+                    // Dibujar la ruta desde la ubicación actual del usuario
+                    drawRoute(GeoPoint(latitude, longitude), destinationPoint)
+                } else {
+                    showToast("Ubicación no encontrada")
+                }
+            } else {
+                showToast("Ingrese una ubicación válida")
+            }
+        }
+
     }
 
     private fun showToast(message: String) {
@@ -141,13 +144,20 @@ class Rutas : AppCompatActivity() {
         val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         val locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
+                // Actualiza las coordenadas de la ubicación actual del usuario
+                latitude = location.latitude
+                longitude = location.longitude
+
                 // Centra el mapa en la ubicación actual
                 val mapController: IMapController = binding.osmMap.controller
                 mapController.setZoom(18.0)
-                mapController.setCenter(GeoPoint(location.latitude, location.longitude))
+                mapController.setCenter(GeoPoint(latitude, longitude))
 
                 // Muestra un marcador en la ubicación actual
-                showMarker(GeoPoint(location.latitude, location.longitude))
+                showMarker(GeoPoint(latitude, longitude))
+
+                // Deja de escuchar las actualizaciones después de obtener la ubicación
+                locationManager.removeUpdates(this)
             }
 
             override fun onProviderDisabled(provider: String) {}
@@ -157,7 +167,7 @@ class Rutas : AppCompatActivity() {
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
         }
 
-        // Registra el LocationListener para obtener actualizaciones de ubicación
+        // Registra el LocationListener para obtener una actualización única de la ubicación
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -168,16 +178,13 @@ class Rutas : AppCompatActivity() {
         ) {
             return
         }
-        locationManager.requestLocationUpdates(
+        locationManager.requestSingleUpdate(
             LocationManager.GPS_PROVIDER,
-            0,
-            0.toFloat(),
-            locationListener
+            locationListener,
+            null
         )
-
-        // Agrega un marcador personalizado en la ubicación actual
-        showMarker(GeoPoint(latitude, longitude))
     }
+
 
     private fun showMarker(geoPoint: GeoPoint) {
         // Elimina cualquier marcador existente
@@ -209,7 +216,6 @@ class Rutas : AppCompatActivity() {
                 return false
             }
             override fun longPressHelper(p: GeoPoint): Boolean {
-                longPressOnMap(p)
                 return true
             }
         })
@@ -217,11 +223,7 @@ class Rutas : AppCompatActivity() {
     }
 
 
-    private fun longPressOnMap(p:GeoPoint){
-        longPressedMarker?.let { binding.osmMap.overlays.remove(it) }
-        longPressedMarker = createMarker(p,"location",null, org.osmdroid.library.R.drawable.ic_menu_mylocation)
-        longPressedMarker?.let { binding.osmMap.overlays.add(it) }
-    }
+
 
     private fun createMarker(p:GeoPoint,title:String?,desc:String?,iconID:Int):Marker?{
         var marker:Marker?= null
