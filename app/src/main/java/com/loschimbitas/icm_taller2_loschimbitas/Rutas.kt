@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -28,11 +29,9 @@ import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.TilesOverlay
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-
-
-
+import java.io.IOException
+import android.os.AsyncTask
+import org.osmdroid.bonuspack.routing.Road
 
 class Rutas : AppCompatActivity() {
 
@@ -68,20 +67,23 @@ class Rutas : AppCompatActivity() {
         buttonNavigate.setOnClickListener {
             val locationName = editTextLocation.text.toString()
             if (locationName.isNotEmpty()) {
-                val toastMessage = "En camino a $locationName"
-                showToast(toastMessage)
+                val destinationPoint = buscarCiudadPorNombre(locationName)
+                if (destinationPoint != null) {
+                    val toastMessage = "En camino a $locationName"
+                    showToast(toastMessage)
 
-                // Aquí puedes agregar lógica para obtener la ubicación real asociada al nombre
-                // y luego utilizar la función drawRoute para mostrar la ruta en el mapa.
-                // Por ahora, simplemente imprimiré la ubicación en el log.
-                Log.i("OSM_activity", "En camino a $locationName")
+                    // Dibujar la ruta
+                    drawRoute(startPoint, destinationPoint)
+                } else {
+                    showToast("Ubicación no encontrada")
+                }
             } else {
                 showToast("Ingrese una ubicación válida")
             }
         }
 
         // Verificar permisos de ubicación
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED
         ) {
             // Con el permiso concedido, muestra la ubicación actual y centra el mapa
@@ -90,7 +92,7 @@ class Rutas : AppCompatActivity() {
             // Si no tiene permisos, los solicita
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 locationPermissionCode
             )
         }
@@ -105,7 +107,7 @@ class Rutas : AppCompatActivity() {
         binding.osmMap.onResume()
 
         //verivicar permisos de ubicacion
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED
         ){
             // con el permiso concedido se muestra la ubicacion actual
@@ -114,7 +116,7 @@ class Rutas : AppCompatActivity() {
             // si no tiene permisos los solicita
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 locationPermissionCode
             )
         }
@@ -124,7 +126,7 @@ class Rutas : AppCompatActivity() {
         mapController.setCenter(this.startPoint)
 
         //ajuste de tema para mapa segun el modo del dispoditivo
-        val uiManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+        val uiManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
         if(uiManager.nightMode == UiModeManager.MODE_NIGHT_YES){
             binding.osmMap.overlayManager.tilesOverlay.setColorFilter(TilesOverlay.INVERT_COLORS)
         }
@@ -136,7 +138,7 @@ class Rutas : AppCompatActivity() {
 
     private fun showAndCenterCurrentLocation() {
         // Utiliza LocationManager para obtener la ubicación actual
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         val locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
                 // Centra el mapa en la ubicación actual
@@ -237,23 +239,56 @@ class Rutas : AppCompatActivity() {
         return marker
     }
 
-    private fun drawRoute(start:GeoPoint,finish:GeoPoint){
 
-        val routePoints =ArrayList<GeoPoint>()
-        routePoints.add(start)
-        routePoints.add(finish)
-        val road = roadManager.getRoad(routePoints)
-        Log.i("OSM_acticity","Route length: ${road.mLength} Km")
-        Log.i("OSM_acticity","Duration: ${road.mDuration} min")
 
-        if(binding.osmMap != null){
-            roadOverlay?.let { binding.osmMap.overlays.remove(it) }
-            roadOverlay = RoadManager.buildRoadOverlay(road)
-            roadOverlay?.outlinePaint?.color = ContextCompat.getColor(this,R.color.Red)
-            roadOverlay?.outlinePaint?.strokeWidth =10f
-            binding.osmMap.overlays.add(roadOverlay)
+    private inner class GetRouteTask : AsyncTask<GeoPoint, Void, Road>() {
+        override fun doInBackground(vararg params: GeoPoint): Road? {
+            val routePoints = ArrayList<GeoPoint>()
+            routePoints.add(startPoint)
+            routePoints.add(params[0]) // Destino
+
+            return roadManager.getRoad(routePoints)
         }
 
+        override fun onPostExecute(result: Road?) {
+            super.onPostExecute(result)
+            if (result != null) {
+                // Dibujar la ruta
+                drawRoadOverlay(result)
+            } else {
+                showToast("Error al obtener la ruta")
+            }
+        }
     }
+
+    private fun drawRoute(start: GeoPoint, finish: GeoPoint) {
+        GetRouteTask().execute(finish)
+    }
+
+    private fun drawRoadOverlay(road: Road) {
+        roadOverlay?.let { binding.osmMap.overlays.remove(it) }
+        roadOverlay = RoadManager.buildRoadOverlay(road)
+        roadOverlay?.outlinePaint?.color = ContextCompat.getColor(this, R.color.Red)
+        roadOverlay?.outlinePaint?.strokeWidth = 10f
+        binding.osmMap.overlays.add(roadOverlay)
+    }
+
+    private fun buscarCiudadPorNombre(nombreCiudad: String): GeoPoint? {
+        val mGeocoder = Geocoder(baseContext)
+        val addressString = nombreCiudad
+        if (addressString.isNotEmpty()) {
+            try {
+                val addresses = mGeocoder.getFromLocationName(addressString, 2)
+                if (!addresses.isNullOrEmpty()) {
+                    val addressResult = addresses[0]
+                    return GeoPoint(addressResult.latitude, addressResult.longitude)
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+        return null
+    }
+
 
 }
