@@ -10,6 +10,9 @@ import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.loschimbitas.icm_taller2_loschimbitas.databinding.ActivityRutasBinding
@@ -41,6 +44,8 @@ class Rutas : AppCompatActivity() {
     private lateinit var roadManager: RoadManager
     private var roadOverlay:Polyline?= null
     private var locationPermissionCode = 1
+    private lateinit var editTextLocation: EditText
+    private lateinit var buttonNavigate: Button
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,12 +54,31 @@ class Rutas : AppCompatActivity() {
         binding = ActivityRutasBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        editTextLocation = findViewById(R.id.editTextLocation)
+        buttonNavigate = findViewById(R.id.buttonNavigate)
+
         binding.osmMap.setTileSource(TileSourceFactory.MAPNIK)
         binding.osmMap.setMultiTouchControls(true)
 
         binding.osmMap.overlays.add(createOverlayEvents())
 
         roadManager = OSRMRoadManager(this,"ANDROID")
+
+
+        buttonNavigate.setOnClickListener {
+            val locationName = editTextLocation.text.toString()
+            if (locationName.isNotEmpty()) {
+                val toastMessage = "En camino a $locationName"
+                showToast(toastMessage)
+
+                // Aquí puedes agregar lógica para obtener la ubicación real asociada al nombre
+                // y luego utilizar la función drawRoute para mostrar la ruta en el mapa.
+                // Por ahora, simplemente imprimiré la ubicación en el log.
+                Log.i("OSM_activity", "En camino a $locationName")
+            } else {
+                showToast("Ingrese una ubicación válida")
+            }
+        }
 
         // Verificar permisos de ubicación
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -72,6 +96,9 @@ class Rutas : AppCompatActivity() {
         }
     }
 
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
 
     override fun onResume() {
         super.onResume()
