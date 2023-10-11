@@ -37,4 +37,11 @@
         android:src="@drawable/osmap"
         tools:ignore="ContentDescription" />
 
+    <Button
+        android:id="@+id/rutaButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Calcular rutas"/>
+
 </LinearLayout>

@@ -30,5 +30,11 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
         }
+
+        binding.rutaButton.setOnClickListener {
+            val intent = Intent (this, Rutas::class.java)
+            startActivity(intent)
+        }
+
     }
 }
