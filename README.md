@@ -1,14 +1,14 @@
 # ICMTaller2LosChimbitas
 
-Integrantes:
+## Integrantes:
 
-Alejandro Uscátegui Torres 
-David Fernando Perez Medina
-Maria José Avellaneda Balamba
-Stiven Ortiz Noreña
+Alejandro Uscátegui Torres <br>
+David Fernando Perez Medina <br>
+Maria José Avellaneda Balamba <br>
+Stiven Ortiz Noreña <br>
 
-Grupo:
+## Grupo:
 
 Los Chimbitas
 
-Video demostrativo: https://youtu.be/52O0_dc7FTg
+### Video demostrativo: https://youtu.be/52O0_dc7FTg
