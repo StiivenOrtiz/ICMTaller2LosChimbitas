@@ -132,9 +132,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 Toast.makeText(this, "Se encuentra a ${distancia} kilometros de distancia de este punto", Toast.LENGTH_SHORT).show()
                             }
                             //Agregar Marcador al mapa
-                            else {
-                                Toast.makeText(this, "Dirección no encontrada", Toast.LENGTH_SHORT).show()
-                            }
+
+                        }
+                        else {
+                            Toast.makeText(this, "Dirección no encontrada", Toast.LENGTH_SHORT).show()
                         }
                     } catch (e: IOException) {
                         e.printStackTrace()
